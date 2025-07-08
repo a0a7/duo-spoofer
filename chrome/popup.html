@@ -59,89 +59,22 @@
   <!-- Activation screen -->
   <div class="screen" id="activation">
     <h4 id="errorSplash">
-      Switch between Universal or Traditional instructions.
     </h4>
-
     <div class="steps">
-      <!-- Universal / Traditional buttons -->
-      <form class="instructions">
-        <input type="radio" name="traditional-input" id="universal-button" class="instructions-class" value="universal"
-          checked />
-        <label for="universal-button" class="instructions-label">Universal</label>
-        <input type="radio" name="traditional-input" id="traditional-button" class="instructions-class"
-          value="traditional" />
-        <label for="traditional-button" class="instructions-label">Traditional</label>
-      </form>
-      <!-- Table to distribute buttons evenly -->
-      <table style="border-spacing: 0">
-        <tr>
-          <td><button id="prev">&#10094;</button></td>
-          <td style="width: 50%">
-            <p id="counter"></p>
-          </td>
-          <td><button id="next">&#10095;</button></td>
-        </tr>
-      </table>
-      <!-- Slide 1 -->
-      <div class="slide">
-        <p style="margin-bottom: 10px">Click <b>Add a new device</b>.</p>
-        <!-- Universal -->
-        <div class="hidden-panel traditional-panel">
-          <img src="/images/universal/0.png" />
-        </div>
-        <!-- Traditional -->
-        <div class="hidden-panel universal-panel">
-          <img src="/images/traditional/0.png" />
-        </div>
-      </div>
-      <!-- Slide 2 -->
-      <div class="slide">
-        <div class="hidden-panel traditional-panel">
-          <p>Click <b>Duo Mobile</b>.</p>
-          <img src="/images/universal/1.png" />
-        </div>
-        <div class="hidden-panel universal-panel">
-          <p>Click <b>Tablet</b>, then <b>iOS</b>.</p>
-          <img src="/images/traditional/1.png" />
-        </div>
-      </div>
-      <!-- Slide 3 -->
-      <div class="slide">
-        <div class="hidden-panel traditional-panel">
-          <p>Click <b>I have a tablet</b>, then <b>Next</b>.</p>
-          <img src="/images/universal/2.png" />
-        </div>
-        <div class="hidden-panel universal-panel">
-          <p>Click <b>I have Duo Mobile installed</b>.</p>
-          <img src="/images/traditional/2.png" />
-        </div>
-      </div>
-      <!-- Slide 4 -->
-      <div class="slide">
+      <!-- QR Code Detection Section -->
+      <div class="activation-section">
         <p id="qrSearchText">Searching for a QR code...</p>
         <p id="qrErrorText"></p>
-        <h5 style="font-weight: normal">
+        <p style="font-weight: normal">
           Auto 2FA will find the QR code on the current tab.
-        </h5>
-        <h5>Not working? Go to Step 5.</h5>
-      </div>
-      <!-- Slide 5 -->
-      <div class="slide">
-        <p>Alternatively, you can send the code to your email.</p>
-        <div class="hidden-panel traditional-panel">
-          <img src="/images/universal/4.png" />
-        </div>
-        <div class="hidden-panel universal-panel">
-          <img src="/images/traditional/4.png" />
-        </div>
-      </div>
-      <!-- Slide 6 -->
-      <div class="slide">
-        <p>
-          Open the link sent to your inbox. Copy the code from the page into
-          the box below. Click activate.
         </p>
-        <img src="/images/6.png" style="margin-bottom: 10px" />
+      </div>
+      
+      <hr style="margin: 15px 0;" />
+      
+      <!-- Manual Activation Section -->
+      <div class="activation-section">
+        <h5>Manual Activation (if automatic detection fails)</h5>
         <div style="display: flex">
           <input type="text" id="code" placeholder="Paste activation code" />
           <button type="submit" id="activateButton">Activate</button>
@@ -150,10 +83,10 @@
     </div>
     <h4 style="margin: 0; padding: 0; font-size: 10px">
       Confused? Use the
-      <a href="https://github.com/FreshSupaSulley/Auto-2FA/blob/main/TUTORIAL.md" target="_blank">walkthrough</a>.
+      <a href="https://github.com/a0a7/auto/blob/main/TUTORIAL.md" target="_blank">walkthrough</a>.
     </h4>
   </div>
-
+  
   <!-- Activation success page -->
   <div class="screen" id="activationSuccess">
     <p style="margin-bottom: 10px"><b>Activated!</b> Device name:</p>

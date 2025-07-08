@@ -7,63 +7,8 @@ const { totp } = window.otplib;
 const secureStorage = new SecureStorage();
 
 // Determines which slide should be visible on startup page
+// Note: No longer using slides, but keeping for compatibility
 let slideIndex = 0;
-
-// Next slide
-let nextButton = document.getElementById("next");
-let flashes = 0;
-let defaultColor = nextButton.style.color;
-let defaultBGColor = nextButton.style.backgroundColor;
-let defaultBorder = nextButton.style.borderColor;
-let tutorialFlash = new Timer(
-  async () => {
-    let flash = ++flashes % 2 == 0;
-    nextButton.style.color = flash ? defaultColor : "white";
-    nextButton.style.backgroundColor = flash ? defaultBGColor : "red";
-    nextButton.style.borderColor = flash ? defaultBorder : "red";
-    if (flashes > 5) tutorialFlash.stop();
-  },
-  300,
-  () => {
-    nextButton.style.color = defaultColor;
-    nextButton.style.backgroundColor = defaultBGColor;
-    nextButton.style.borderColor = defaultBorder;
-  }
-);
-nextButton.addEventListener("click", function () {
-  slideIndex += 1;
-  updateSlide(slideIndex);
-  tutorialFlash.stop();
-});
-nextButton.addEventListener("mouseover", function () {
-  tutorialFlash.stop();
-});
-
-// Previous slide
-document.getElementById("prev").addEventListener("click", function () {
-  slideIndex -= 1;
-  updateSlide(slideIndex);
-  tutorialFlash.stop();
-});
-
-// Universal / Traditional buttons
-let universalButton = document.getElementById("universal-button");
-universalButton.addEventListener("change", (e) => {
-  browser.storage.session.set({ promptType: "universal" });
-});
-// Traditional button (no need for universal support, that's the default)
-let traditionalButton = document.getElementById("traditional-button");
-traditionalButton.addEventListener("change", (e) => {
-  // Store in case user clicks off to browse to Duo tab so they don't have to flip back
-  browser.storage.session.set({ promptType: "traditional" });
-});
-// Get prompt
-await browser.storage.session.get("promptType", (e) => {
-  if (e.promptType == "traditional") {
-    traditionalButton.checked = true;
-  }
-  // No need to set universal to be checked, it's on by default
-});
 
 // Help button
 document.getElementById("helpButton").addEventListener("click", function () {
@@ -481,7 +426,6 @@ document.getElementById("failureButton").addEventListener("click", function () {
 
 // When the user presses the button on the intro screen, switch to activation
 document.getElementById("introButton").addEventListener("click", function () {
-  tutorialFlash.start();
   changeScreen("activation");
 });
 
@@ -566,8 +510,8 @@ async function changeScreen(id) {
   gear.style.fill = "grey";
   switch (id) {
     case "activation": {
-      // Initialize the active slide (this is necessary on startup)
-      updateSlide(slideIndex);
+      // Start QR scanning immediately when activation screen is shown
+      checkQR.start();
       break;
     }
     case "settings": {
@@ -601,28 +545,8 @@ async function changeScreen(id) {
 }
 
 function updateSlide(newIndex) {
-  if (newIndex == 3) {
-    checkQR.start();
-  } else {
-    checkQR.stop();
-  }
-  let slides = document.getElementsByClassName("slide");
-
-  for (let i = 0; i < slides.length; i++) {
-    slides[i].style.display = "none";
-  }
-
-  // Clamp newIndex within bounds
-  if (newIndex > slides.length - 1) slideIndex = 0;
-  else if (newIndex < 0) slideIndex = slides.length - 1;
-
-  // Store in case user clicks off to browse to Duo tab so they don't have to flip back
-  browser.storage.session.set({ activeSlide: slideIndex });
-  slides[slideIndex].style.display = "";
-
-  // Update slide count
-  let count = document.getElementById("counter");
-  count.textContent = slideIndex + 1 + "/" + slides.length;
+  // Always start QR scanning when activation screen is shown
+  checkQR.start();
 }
 
 // Convert Base64 string to an ArrayBuffer
@@ -813,10 +737,7 @@ async function initialize() {
       changeScreen("intro");
     } else {
       slideIndex = activeSlide;
-      // Only flash if we're not on the last screen (or searching for QR)
-      if (slideIndex != 3 && slideIndex != 5) {
-        tutorialFlash.start();
-      }
+      // Clear any error messages
       document.getElementById("errorSplash").innerHTML = "";
       // Set HTML screen to activate
       changeScreen("activation");
