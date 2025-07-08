@@ -333,6 +333,16 @@ dialog {
     }
 }
 
+#resetButton {
+    color: red;
+    border-color: red;
+}
+
+#resetButton:hover {
+    background-color: red;
+    color: white;
+}
+
 #approveTable {
     border: 1px solid gray;
     border-radius: 5px;

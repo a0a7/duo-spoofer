@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <script src="encryption.js"></script>
 <script src="secure-storage.js"></script>
+<script src="libs/buffer.js"></script>
+<script src="libs/index.js"></script>
 <script type="module" src="popup.js"></script>
 <html>
 
@@ -294,10 +296,39 @@
       </tbody>
     </table>
     <!-- Global settings -->
-    <p style="margin-bottom: revert">Go to the options page to manage data</p>
-    <button id="openOptions">
-      Options
-    </button>
+    <p id="optionsFeedback" style="margin-bottom: revert; color: green; font-weight: bold; display: none;"></p>
+    <table id="globalSettingsDiv">
+      <caption>
+        Data Management
+      </caption>
+      <tbody>
+        <tr>
+          <th>Import data</th>
+          <td>
+            <input type="file" id="importFile" accept=".txt" style="display: none" />
+            <button id="importButton">Import</button>
+          </td>
+        </tr>
+        <tr>
+          <th>Export data</th>
+          <td>
+            <button type="submit" id="exportButton">Export</button>
+          </td>
+        </tr>
+        <tr>
+          <th>Export TOTPs</th>
+          <td>
+            <button type="submit" id="exportTOTPButton">Export TOTPs</button>
+          </td>
+        </tr>
+        <tr>
+          <th>Delete all data</th>
+          <td>
+            <button type="submit" id="resetButton" style="color: red;">Delete all</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </body>
 
