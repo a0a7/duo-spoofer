@@ -1,3 +1,9 @@
+// Import encryption functionality
+importScripts('encryption.js', 'secure-storage.js');
+
+// Initialize secure storage
+const secureStorage = new SecureStorage();
+
 // Welcome page on install
 chrome.runtime.onInstalled.addListener((event) => {
   if (event.reason == "install") {
@@ -90,7 +96,8 @@ async function zeroClickLogin(id, signal, verificationCode) {
   // lastZeroClick = time;
   // Get all devices that use 0 clicks (1 indicates zero-click login, 1-3 total range)
   let deviceInfo = await getDeviceInfo();
-  let zeroClickDevices = Object.values(await new Promise((resolve) => chrome.storage.sync.get(deviceInfo.devices, resolve))).filter((device) => device.clickLevel == "1");
+  let allDevices = await secureStorage.getItems(deviceInfo.devices);
+  let zeroClickDevices = Object.values(allDevices).filter((device) => device.clickLevel == "1");
   console.log("Eligible devices to 0 click in with", zeroClickDevices);
   if (!zeroClickDevices.length) {
     console.log("No devices to zero-click with, aborting");
@@ -199,21 +206,39 @@ async function clearBadge(id) {
 }
 
 // Gets the device info
-function getDeviceInfo() {
-  return new Promise((resolve) => {
-    chrome.storage.sync.get("deviceInfo", (json) => {
-      resolve(json.deviceInfo);
+async function getDeviceInfo() {
+  try {
+    const deviceInfo = await secureStorage.getItem("deviceInfo");
+    return await sanitizeData(deviceInfo);
+  } catch (error) {
+    console.error("Failed to get device info from secure storage:", error);
+    // Try to fall back to old sync storage if secure storage fails
+    return new Promise((resolve) => {
+      chrome.storage.sync.get("deviceInfo", async (json) => {
+        const syncData = json.deviceInfo;
+        if (syncData) {
+          console.log("Found data in sync storage, migrating...");
+          try {
+            await secureStorage.setItem("deviceInfo", syncData);
+            await chrome.storage.sync.remove("deviceInfo");
+            resolve(await sanitizeData(syncData));
+          } catch (migrationError) {
+            console.error("Migration failed:", migrationError);
+            resolve(await sanitizeData(syncData));
+          }
+        } else {
+          resolve(await sanitizeData(null));
+        }
+      });
     });
-  }).then(sanitizeData);
+  }
 }
 
 async function setDeviceInfo(info) {
   let sanitized = await sanitizeData(info);
-  // if (JSON.stringify(sanitized) !== JSON.stringify(info)) {
   console.log("Contents changed! Updating device info");
   console.log("Old", info, "New", sanitized);
-  await chrome.storage.sync.set({ deviceInfo: sanitized });
-  // }
+  await secureStorage.setItem("deviceInfo", sanitized);
   return sanitized;
 }
 
@@ -237,7 +262,7 @@ async function sanitizeData(info) {
     // Break apart each device into their own JSON objects
     for (let device of newInfo.devices) {
       console.log("Setting device info for ", device.pkey)
-      await chrome.storage.sync.set({ [device.pkey]: device }); // fuck it, don't remove pkey from device. One duplicate row ain't gonna hurt
+      await secureStorage.setItem(device.pkey, device); // Store each device separately
     }
     // Devices array now only holds it's pkey, and it stores the device info under that pkey separately
     newInfo.devices = newInfo.devices.map((device) => device.pkey);

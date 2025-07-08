@@ -3,6 +3,9 @@ import "./libs/buffer.js";
 import "./libs/index.js";
 const { totp } = window.otplib;
 
+// Initialize secure storage
+const secureStorage = new SecureStorage();
+
 async function showDeleteModal(prompt, onAccept = () => { }) {
   if (window.confirm(prompt)) {
     onAccept();
@@ -105,7 +108,7 @@ async function getExportableData() {
   // Always will have data thanks to sanitization
   let info = await getDeviceInfo();
   // Get all device data by keys
-  let allDevices = await new Promise((resolve) => browser.storage.sync.get(info.devices, resolve)); // so ig you can grab multiple storage values at once
+  let allDevices = await secureStorage.getItems(info.devices);
   info.devices = info.devices.map((key) => allDevices[key]);
   return info;
 }
@@ -113,7 +116,7 @@ async function getExportableData() {
 // Export TOTPs
 document.getElementById("exportTOTPButton").addEventListener("click", async function () {
   let info = await getDeviceInfo();
-  let allDevices = await new Promise((resolve) => browser.storage.sync.get(info.devices, resolve));
+  let allDevices = await secureStorage.getItems(info.devices);
   let totps = [];
   // Get all devices that have TOTP data
   for (let index in allDevices) {
@@ -176,7 +179,7 @@ document.getElementById("resetButton").onclick = () => {
 // I also don't know what happens if the user doesn't have syncing enabled (i think just uses local)
 async function clearAll() {
   await new Promise((resolve) => browser.storage.session.clear(resolve));
-  await new Promise((resolve) => browser.storage.sync.clear(resolve));
+  await secureStorage.clear();
   await new Promise((resolve) => browser.storage.local.clear(resolve));
 }
 
@@ -200,12 +203,7 @@ async function getSingleDeviceInfo(pkey) {
     const info = await getDeviceInfo();
     pkey = info.activeDevice;
   }
-  return await new Promise((resolve) =>
-    browser.storage.sync.get(pkey, (json) => {
-      // First key is always the identifier
-      resolve(json[Object.keys(json)[0]]);
-    })
-  );
+  return await secureStorage.getItem(pkey);
 }
 
 // Makes a request to the Duo API

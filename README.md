@@ -21,16 +21,16 @@ Auto 2FA utilizes the knowledge gained from reverse engineering the official pho
 Security
 --------
 > [!CAUTION]
-> This extension is experimental! Auto 2FA relies entirely on the security of your browser. If a malicious party got access to your browser and you have syncing enabled for both Auto 2FA and your passwords, they could log in to your Duo Mobile protected service.
+> This extension is experimental! Auto 2FA stores encrypted device data in local browser storage. While the data is encrypted using AES-GCM with a browser-specific key, if a malicious party got access to your browser and could break the encryption, they could potentially access your Duo Mobile device information.
 
 To preface, I am not a cyber security expert. I have a basic understanding of 2FA. I do not recommend using this extension if Duo is protecting access to the nuclear football. Auto 2FA should only be used when both the risk and cost of compromising an account are practically zero.
 
 Auto 2FA is a *practical* secure alternative to the Duo Mobile app. For typical Duo Mobile users, this extension strikes a great balance between security and convenience.
 
-2-step verification is something you know, and something you have. The premise of this extension is that you *know* your password, and you *have* Auto 2FA. But by using Auto 2FA, you're introducing new risks to your Duo Mobile protected account being compromised. Here's some examples:
-1. Your browser account (such as your Google profile if you're on Chrome) is hacked because you have a poor password, no 2FA, and syncing is enabled.
-2. You signed into a public machine, synced all your data to it, and walked away. Then someone decides to use your synced data to login to your Duo protected service.
-3. Someone, who already has your Duo Mobile account password, and who also knows you use Auto 2FA, decides to steal your exported login data off your computer when you're away from the machine.
+2-step verification is something you know, and something you have. The premise of this extension is that you *know* your password, and you *have* Auto 2FA. Auto 2FA now stores your device information encrypted in local storage rather than syncing it across devices. Here's some examples of risks:
+1. Your browser is compromised by malware that can access local storage and break the encryption.
+2. You use the extension on a shared computer and someone with technical expertise extracts the encrypted data.
+3. Someone, who already has your Duo Mobile account password, and who also knows you use Auto 2FA, decides to steal your encrypted login data off your computer and attempts to decrypt it.
 4. You are socially engineered to export your own Duo Mobile device information to an unauthorized party.
 5. You click Auto 2FA by accident, and as it just so happens, someone who knows your username and your password tried to login at the same time and you just approved their login.
 
@@ -48,8 +48,9 @@ If 2 or more push requests are active, they are presented to you to filter out t
 
 #### What's the safest way to use Auto 2FA?
 1. Use two-click logins. This allows you to review every login attempt without auto-approving.
-2. Disable syncing extension/add-on data with your account. Device information will stay local to your machine in case your browser account is compromised.
+2. Use the extension only on trusted, personal devices with up-to-date security.
 3. Use strong passwords (duh).
+4. Keep your browser and operating system updated.
 
 No Logins Found
 ----------------
@@ -70,9 +71,11 @@ Most safe, least convenient. This is the Duo Mobile app behavior. Every login at
 
 Privacy
 -------
-Auto 2FA syncs its Duo Mobile device information to your browser's account, meaning it's accessible to all browsers that the user is signed into if their sync preferences support extensions/add-ons (this is usually on by default). This is convenient for most users, as wherever they log in, they still have Auto 2FA with them to log in through their Duo Mobile account. However, this setting allows your Duo Mobile account to be at risk if your browser account is compromised (see [Security](#security)). You can disable syncing in your browser's settings.
+Auto 2FA stores its Duo Mobile device information encrypted in local browser storage. This means your device data stays on the specific browser/device where you activated it and is not synchronized across different browsers or devices. The encryption uses AES-GCM with a key derived from browser-specific characteristics, providing reasonable protection for local storage.
 
-No information created by this extension is sent anywhere but to Duo Mobile, and there are no outside servers involved. However, your Duo Mobile device information can be exported in settings. Do not send your data to anyone! This is strictly for manually transferring login data to other private machines.
+Your device information is no longer synced across devices for security reasons. If you want to use Auto 2FA on multiple devices, you'll need to activate it separately on each one, or use the export/import feature to manually transfer your encrypted data.
+
+No information created by this extension is sent anywhere but to Duo Mobile, and there are no outside servers involved. However, your Duo Mobile device information can still be exported in settings for backup or manual transfer purposes. Do not send your exported data to anyone! This is strictly for backing up or manually transferring login data to other private machines you own.
 
 ----------------
 Here are repositories that helped make Auto 2FA possible or achieve similar purposes:

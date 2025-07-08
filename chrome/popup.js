@@ -3,6 +3,9 @@ import "./libs/buffer.js";
 import "./libs/index.js";
 const { totp } = window.otplib;
 
+// Initialize secure storage
+const secureStorage = new SecureStorage();
+
 // Determines which slide should be visible on startup page
 let slideIndex = 0;
 
@@ -198,7 +201,7 @@ async function activateDevice(rawCode) {
 
         document.getElementById("newDeviceDisplay").innerHTML = `<b>${activationInfo.model}</b> (${activationInfo.platform})`;
         // Create new storage slot for device
-        await chrome.storage.sync.set({ [newDevice.pkey]: newDevice });
+        await secureStorage.setItem(newDevice.pkey, newDevice);
         // Add new device to info
         deviceInfo.devices.push(newDevice.pkey);
         // Set active device to one just added
@@ -709,7 +712,7 @@ document.getElementById("deleteButton").onclick = async () => {
   showDeleteModal(`Are you sure you want to delete this device (${data.name})? You'll need to delete it from your Duo account too.`, async () => {
     let data = await getDeviceInfo();
     // Delete the single device data
-    await chrome.storage.sync.remove(data.activeDevice);
+    await secureStorage.removeItem(data.activeDevice);
     // Remove from devices
     data.devices = data.devices.filter(item => item != data.activeDevice);
     // Go back to previous device, or if on the only device, this should take them to the add device screen
@@ -734,7 +737,7 @@ async function updatePage(deviceInfo) {
   Array.from(deviceSelect.options).forEach(option => {
     if (option.value !== "-1") deviceSelect.removeChild(option);
   });
-  let allDevices = await new Promise((resolve) => chrome.storage.sync.get(deviceInfo.devices, resolve));
+  let allDevices = await secureStorage.getItems(deviceInfo.devices);
   // Add to select device box
   for (let device in allDevices) {
     let newDevice = document.createElement("option");
@@ -871,16 +874,11 @@ async function getSingleDeviceInfo(pkey) {
     const info = await getDeviceInfo();
     pkey = info.activeDevice;
   }
-  return await new Promise((resolve) =>
-    chrome.storage.sync.get(pkey, (json) => {
-      // First key is always the identifier
-      resolve(json[Object.keys(json)[0]]);
-    })
-  );
+  return await secureStorage.getItem(pkey);
 }
 
 function setSingleDeviceInfo(rawDevice) {
-  return chrome.storage.sync.set({ [rawDevice.pkey]: rawDevice });
+  return secureStorage.setItem(rawDevice.pkey, rawDevice);
 }
 
 // Makes a request to the Duo API
