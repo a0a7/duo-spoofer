@@ -1,30 +1,52 @@
 /* Elements */
 html {
-    background-color: #f4f4f4;
+    background-color: #ffffff !important;
     min-height: 30px;
-    width: 300px;
-    font-family: sans-serif;
+    width: 320px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    color: #000000;
 }
 
 body {
     padding: 0;
+    margin: 0;
+    background-color: #ffffff !important;
+    color: #000000;
+    min-height: auto;
+}
+
+#content {
+    background-color: #ffffff !important;
+    color: #000000;
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+* {
+    color: #000000 !important;
 }
 
 button {
-    padding: 8px 2px;
-    border-color: grey;
-    border-style: solid;
-    border-radius: 20px;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: #000000;
     user-select: none;
-    width: 40%;
+    min-width: 80px;
+    flex: 0 0 auto;
     transition: 0.15s ease-in-out;
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 
     &:hover {
         cursor: pointer;
-        opacity: 0.7;
+        background-color: #f5f5f5;
 
         &:active {
-            opacity: 0.5;
+            background-color: #e8e8e8;
         }
     }
 }
@@ -32,8 +54,8 @@ button {
 hr {
     margin: 0;
     padding: 0;
-    border: 1px solid gray;
-    border-top: none;
+    border: none;
+    border-top: 1px solid #e0e0e0;
 }
 
 h1 {
@@ -86,15 +108,42 @@ table {
 
 input {
     text-align: center;
-    min-height: 25px;
-    font-size: 12px;
+    min-height: 40px;
+    font-size: 14px;
+    border: none;
+    border-radius: 8px;
+    background-color: #f8f8f8;
+    padding: 0 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    outline: none;
+    
+    &:focus {
+        background-color: #f0f0f0;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+}
+
+select {
+    border: none;
+    border-radius: 8px;
+    background-color: #ffffff;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #000000;
+    outline: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    
+    &:focus {
+        background-color: #f8f8f8;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
 }
 
 a {
     color: inherit;
 
     &:hover {
-        color: gray;
+        color: #000000;
     }
 }
 
@@ -106,11 +155,12 @@ dialog {
 
 /* Classes */
 .screen {
-    background-color: white;
+    background-color: #ffffff;
     text-align: center;
-    border-bottom-left-radius: 5px;
-    border-bottom-right-radius: 5px;
-    padding: 5px 0px;
+    border-radius: 0;
+    padding: 16px 16px 20px 16px;
+    border: none;
+    margin-bottom: 0;
 }
 
 #activation {
@@ -361,6 +411,28 @@ dialog {
     margin-bottom: 8px;
 }
 
+/* Button layout fixes */
+#main button {
+    flex: 1;
+    margin: 0 4px;
+}
+
+#activation .toMainScreen,
+#activation #helpButton {
+    flex: 0 0 auto;
+    padding: 8px 16px;
+}
+
+/* Remove excessive margin at bottom */
+.screen:last-child {
+    margin-bottom: 0;
+    padding-bottom: 16px;
+}
+
+#main {
+    padding-bottom: 12px;
+}
+
 @keyframes scale {
 
     0%,
@@ -417,7 +489,7 @@ dialog {
     transition: all 0.2s ease;
 
     &:hover {
-        color: gray;
+        color: #000000;
     }
 }
 
@@ -452,48 +524,54 @@ select {
     border-radius: 3px;
 }
 
-/* Dark theme */
+/* Override dark theme - force white background always */
 @media (prefers-color-scheme: dark) {
     html {
-        color: rgb(230, 230, 230);
-        background-color: #282828;
+        color: #000000 !important;
+        background-color: #ffffff !important;
+    }
+
+    body {
+        color: #000000 !important;
+        background-color: #ffffff !important;
     }
 
     button {
-        color: white;
-        background-color: #555;
-        border-color: #a6a6a6;
+        color: #000000 !important;
+        background-color: #ffffff !important;
+        border: none !important;
 
         &:disabled {
-            color: #aaa;
-            background-color: #505050;
-            border-color: #a6a6a6;
+            color: #666 !important;
+            background-color: #f5f5f5 !important;
         }
     }
 
     a:hover {
-        color: #bbb;
+        color: #000000 !important;
     }
 
     .failedReasonBackground {
-        background-color: #282828;
+        background-color: #ffffff !important;
     }
 
     .screen {
-        background-color: #333;
+        background-color: #ffffff !important;
+        color: #000000 !important;
     }
 
     .slide,
     .oneSlide {
-        color: white;
-        background-color: #282828;
+        color: #000000 !important;
+        background-color: #ffffff !important;
     }
 
     .instructions-label {
-        background-color: #333;
+        background-color: #ffffff !important;
+        color: #000000 !important;
 
         &:hover {
-            color: gray;
+            color: #000000 !important;
         }
     }
 
