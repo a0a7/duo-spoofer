@@ -24,7 +24,7 @@
     </select>
     <!-- Device TOTP -->
     <!-- TOTP -->
-    <a id="totp">
+    <a id="totp" style="display: none;">
       <svg viewBox="0 0 16 16">
         <circle cx="8" cy="8" r="4" id="totpCircle" style="animation-duration: 30s"></circle>
       </svg>
@@ -48,36 +48,35 @@
 
   <!-- Activation screen -->
   <div class="screen" id="activation">
-    <h4 id="errorSplash">
-    </h4>
-    <div class="steps">
-      <!-- QR Code Detection Section -->
-      <div class="activation-section">
-        <p id="qrSearchText">Searching for a QR code...</p>
-        <p id="qrErrorText"></p>
-        <p style="font-weight: normal">
-          Auto 2FA will find the QR code on the current tab.
-        </p>
-      </div>
-
-      <hr style="margin: 20px 0" />
-
-      <!-- Manual Activation Section -->
-      <div class="activation-section">
-        <h4>Manual Activation</h4>
-        <p style="font-weight: normal">
-          If QR code detection fails, paste your activation code below:
-        </p>
-        <input type="text" id="code" placeholder="Activation code" />
-        <br />
-        <button type="submit" id="activateButton">Activate</button>
-        <p style="font-weight: normal; margin-top: 10px">
-          Open the link sent to your inbox, and paste the code above.
-        </p>
-      </div>
+    <div id="errorSplash" style="margin-bottom: 16px; font-weight: 500; color: #e74c3c;">
+    </div>
+    
+    <!-- QR Code Detection Section -->
+    <div style="margin-bottom: 24px;">
+      <h4 style="margin: 0 0 12px 0; font-size: 16px;">Automatic Detection</h4>
+      <p id="qrSearchText" style="margin: 0 0 8px 0; font-weight: 500;">Searching for a QR code...</p>
+      <p id="qrErrorText" style="margin: 0 0 8px 0; color: #e74c3c;"></p>
+      <p style="margin: 0; font-weight: normal; color: #666; font-size: 14px;">
+        autoauth will find the QR code on the current tab.
+      </p>
     </div>
 
-    <hr />
+    <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;" />
+
+    <!-- Manual Activation Section -->
+    <div style="margin-bottom: 24px;">
+      <h4 style="margin: 0 0 12px 0; font-size: 16px;">Manual Activation</h4>
+      <p style="margin: 0 0 16px 0; font-weight: normal; color: #666; font-size: 14px;">
+        If QR code detection fails, paste your activation code below:
+      </p>
+      <input type="text" id="code" placeholder="Activation code" style="width: 100%; margin-bottom: 16px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;" />
+      <button type="submit" id="activateButton" style="width: 100%; margin-bottom: 12px;">Activate</button>
+      <p style="margin: 0; font-weight: normal; color: #666; font-size: 13px;">
+        Open the link sent to your inbox, and paste the code above.
+      </p>
+    </div>
+
+    <hr style="margin: 24px 0 16px 0; border: none; border-top: 1px solid #eee;" />
     <div style="display: flex; justify-content: space-between">
       <button id="helpButton">Help</button>
       <button class="toMainScreen">Back to Main</button>
