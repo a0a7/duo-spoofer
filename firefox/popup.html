@@ -42,10 +42,8 @@
 
   <!-- Welcome screen -->
   <div class="screen" id="intro">
-    <h4>
-      This extension is experimental. Functionality could break at any time.
-      Always keep backup devices on your account. This extension is not
-      recognized, endorsed, or affiliated with Duo Mobile or Cisco Technology.
+    <h4 id="disclaimerText">
+      This extension is experimental. Functionality could break at any time. Always keep backup devices on your account. This extension is not recognized, endorsed, or affiliated with Duo Mobile or Cisco Technology.
     </h4>
     <hr />
     <h4>
@@ -68,199 +66,57 @@
           Auto 2FA will find the QR code on the current tab.
         </p>
       </div>
-      
-      <hr style="margin: 15px 0;" />
-      
+
+      <hr style="margin: 20px 0" />
+
       <!-- Manual Activation Section -->
       <div class="activation-section">
-        <h5>Manual Activation (if automatic detection fails)</h5>
-        <div style="display: flex">
-          <input type="text" id="code" placeholder="Paste activation code" />
-          <button type="submit" id="activateButton">Activate</button>
-        </div>
+        <h4>Manual Activation</h4>
+        <p style="font-weight: normal">
+          If QR code detection fails, paste your activation code below:
+        </p>
+        <input type="text" id="code" placeholder="Activation code" />
+        <br />
+        <button type="submit" id="activateButton">Activate</button>
+        <p style="font-weight: normal; margin-top: 10px">
+          Open the link sent to your inbox, and paste the code above.
+        </p>
       </div>
     </div>
-    <h4 style="margin: 0; padding: 0; font-size: 10px">
-      Confused? Use the
-      <a href="https://github.com/a0a7/auto/blob/main/TUTORIAL.md" target="_blank">walkthrough</a>.
-    </h4>
-  </div>
 
-  <!-- Activation success page -->
-  <div class="screen" id="activationSuccess">
-    <p style="margin-bottom: 10px"><b>Activated!</b> Device name:</p>
-    <p style="margin: 0" id="newDeviceDisplay"></p>
-    <p>
-      Next time you login, click <b>Other Options</b>, then send it to this
-      new device.
-    </p>
-    <div class="oneSlide">
-      <img src="/images/tutorial.png" />
-      <p>Then tap this extension to approve the login.</p>
+    <hr />
+    <div style="display: flex; justify-content: space-between">
+      <button id="helpButton">Help</button>
+      <button class="toMainScreen">Back to Main</button>
     </div>
-    <button type="submit" class="toMainScreen">Got it</button>
   </div>
 
-  <!-- Home screen -->
+  <!-- Main TOTP screen -->
   <div class="screen" id="main">
-    <!-- Elements dynamically altered in JS -->
-    <p id="splash" style="margin-top: 10px; margin-bottom: 15px"></p>
-    <button type="submit" id="pushButton">Login</button>
-    <!-- Help button -->
-    <img id="helpButton" src="images/help.svg" />
+    <div style="display: flex; justify-content: space-between; margin-bottom: 10px">
+      <button id="addDevice">Add Device</button>
+      <button id="removeDevice">Remove Device</button>
+    </div>
   </div>
 
-  <!-- Multiple push requests are active -->
-  <div class="screen" id="transactions">
-    <!-- Elements dynamically altered in JS -->
-    <p id="transactionsSplash"></p>
-    <table id="approveTable"></table>
+  <!-- Activation success screen -->
+  <div class="screen" id="activationSuccess">
+    <h4>Success!</h4>
+    <p>Your device has been added successfully.</p>
+    <button class="toMainScreen">Continue</button>
   </div>
 
-  <!-- Duo verified push -->
-  <div class="screen" id="verifiedPush">
-    <!-- Elements dynamically altered in JS -->
-    <p style="margin-bottom: revert">Enter verification code:</p>
-    <div id="pin-container"></div>
-    <button type="submit" id="verifyButton">Verify</button>
-  </div>
-
-  <!-- User fails to login multiple times -->
+  <!-- Failed attempts / Help screen -->
   <div class="screen" id="failedAttempts">
-    <div class="oneSlide">
-      <p>Send a push to Auto 2FA by clicking <b>Other options</b>:</p>
-      <img src="/images/tutorial.png" />
-      <p>Then click the extension to approve the login.</p>
-    </div>
-    <p>
-      Learn more
-      <a href="https://github.com/FreshSupaSulley/Auto-2FA/blob/main/README.md#no-logins-found"
-        target="_blank">here</a>.
-    </p>
-    <button type="submit" id="failureButton">Got it</button>
-  </div>
-
-  <!-- Success -->
-  <div class="screen" id="success">
-    <!-- Elements dynamically altered in JS -->
-    <div style="
-          display: flex;
-          display: inline-flex;
-          gap: 10px;
-          place-items: center;
-        ">
-      <p style="margin-bottom: 15px">Logged in!</p>
-      <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-        <circle class="checkmarkCircle" cx="26" cy="26" r="25" fill="none" />
-        <path class="checkmarkCheck" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
-      </svg>
-    </div>
-    <p id="successDetails"></p>
-    <button type="submit" class="toMainScreen">Try Again</button>
-  </div>
-
-  <!-- Denied -->
-  <div class="screen" id="denied">
-    <!-- Elements dynamically altered in JS -->
-    <p style="margin-bottom: 15px">Login denied.</p>
-    <p>
-      You denied a login attempt. If that wasn't you, reset your password.
-    </p>
-    <button type="submit" class="toMainScreen">Try Again</button>
-  </div>
-
-  <!-- Failure -->
-  <div class="screen" id="failure">
-    <h3>An error occured:</h3>
-    <div class="failedReasonBackground">
-      <p id="failedReason"></p>
-    </div>
-    <p>
-      You might've deleted the device.
-      <br />
-      If this issue persists,
-      <a href="https://github.com/FreshSupaSulley/Auto-2FA" target="_blank">open an issue</a>.
-    </p>
-    <button type="submit" class="toMainScreen">Ok</button>
-  </div>
-
-  <!-- Offline -->
-  <div class="screen" id="offline">
-    <h3>You're offline</h3>
-    <p>Connect to the internet.</p>
-  </div>
-
-  <div class="screen" id="settings">
-    <dialog id="deleteModal">
-      <p id="modalPrompt">Are you sure you want to do this?</p>
-      <form method="dialog">
-        <button autofocus id="confirmDialog">Yes</button>
-        <button>No</button>
-      </form>
-    </dialog>
-    <!-- Device settings -->
-    <table id="deviceSettingsDiv">
-      <caption>
-        Device Settings
-      </caption>
-      <tbody>
-        <tr>
-          <th id="deviceNameFeedback">Name</th>
-          <td>
-            <input style="text-align: left" maxlength="64" placeholder="No data" id="deviceName" />
-          </td>
-        </tr>
-        <tr>
-          <th>
-            <a id="clickLoginState" target="_blank"
-              href="https://github.com/FreshSupaSulley/Auto-2FA/blob/main/README.md#login-clicks">No data</a>
-          </th>
-          <td>
-            <input type="range" min="1" max="3" value="2" class="slider" id="clickLogins" />
-          </td>
-        </tr>
-        <tr>
-          <th>Delete</th>
-          <td>
-            <button id="deleteButton" type="submit">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <!-- Global settings -->
-    <p id="optionsFeedback" style="margin-bottom: revert; color: green; font-weight: bold; display: none;"></p>
-    <table id="globalSettingsDiv">
-      <caption>
-        Data Management
-      </caption>
-      <tbody>
-        <tr>
-          <th>Import data</th>
-          <td>
-            <input type="file" id="importFile" accept=".txt" style="display: none" />
-            <button id="importButton">Import</button>
-          </td>
-        </tr>
-        <tr>
-          <th>Export data</th>
-          <td>
-            <button type="submit" id="exportButton">Export</button>
-          </td>
-        </tr>
-        <tr>
-          <th>Export TOTPs</th>
-          <td>
-            <button type="submit" id="exportTOTPButton">Export TOTPs</button>
-          </td>
-        </tr>
-        <tr>
-          <th>Delete all data</th>
-          <td>
-            <button type="submit" id="resetButton" style="color: red;">Delete all</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <h4>Need Help?</h4>
+    <p>If you're having trouble activating your device:</p>
+    <ul>
+      <li>Make sure you're on the Duo Mobile activation page</li>
+      <li>Check that the QR code is visible and not blocked</li>
+      <li>Try refreshing the page and scanning again</li>
+      <li>Use manual activation with the code from your email</li>
+    </ul>
+    <button class="toMainScreen">Back</button>
   </div>
 </body>
 

@@ -22,7 +22,7 @@ class SecureStorage {
   async checkAndMigrate() {
     // Check if we've already migrated
     const migrated = await new Promise((resolve) => {
-      chrome.storage.local.get(this.migrationKey, (result) => {
+      this.browserAPI.storage.local.get(this.migrationKey, (result) => {
         resolve(result[this.migrationKey] || false);
       });
     });
@@ -33,14 +33,14 @@ class SecureStorage {
 
     // Check if there's data in sync storage to migrate
     const syncData = await new Promise((resolve) => {
-      chrome.storage.sync.get(null, (result) => {
+      this.browserAPI.storage.sync.get(null, (result) => {
         resolve(result);
       });
     });
 
     if (Object.keys(syncData).length === 0) {
       // No data to migrate, mark as migrated
-      await chrome.storage.local.set({ [this.migrationKey]: true });
+      await this.browserAPI.storage.local.set({ [this.migrationKey]: true });
       return false;
     }
 
@@ -53,10 +53,10 @@ class SecureStorage {
       }
 
       // Clear sync storage after successful migration
-      await chrome.storage.sync.clear();
+      await this.browserAPI.storage.sync.clear();
       
       // Mark migration as complete
-      await chrome.storage.local.set({ [this.migrationKey]: true });
+      await this.browserAPI.storage.local.set({ [this.migrationKey]: true });
       
       console.log('Migration completed successfully');
       return true;
@@ -69,9 +69,9 @@ class SecureStorage {
   // Get an item from encrypted storage
   async getItem(key) {
     return new Promise((resolve, reject) => {
-      chrome.storage.local.get(key, async (result) => {
-        if (chrome.runtime.lastError) {
-          reject(chrome.runtime.lastError);
+      this.browserAPI.storage.local.get(key, async (result) => {
+        if (this.browserAPI.runtime.lastError) {
+          reject(this.browserAPI.runtime.lastError);
           return;
         }
 
@@ -97,9 +97,9 @@ class SecureStorage {
     return new Promise(async (resolve, reject) => {
       try {
         const encryptedData = await this.encryptionManager.encrypt(value);
-        chrome.storage.local.set({ [key]: encryptedData }, () => {
-          if (chrome.runtime.lastError) {
-            reject(chrome.runtime.lastError);
+        this.browserAPI.storage.local.set({ [key]: encryptedData }, () => {
+          if (this.browserAPI.runtime.lastError) {
+            reject(this.browserAPI.runtime.lastError);
           } else {
             resolve();
           }
@@ -113,9 +113,9 @@ class SecureStorage {
   // Remove an item from storage
   async removeItem(key) {
     return new Promise((resolve, reject) => {
-      chrome.storage.local.remove(key, () => {
-        if (chrome.runtime.lastError) {
-          reject(chrome.runtime.lastError);
+      this.browserAPI.storage.local.remove(key, () => {
+        if (this.browserAPI.runtime.lastError) {
+          reject(this.browserAPI.runtime.lastError);
         } else {
           resolve();
         }
@@ -126,9 +126,9 @@ class SecureStorage {
   // Get multiple items from encrypted storage
   async getItems(keys) {
     return new Promise((resolve, reject) => {
-      chrome.storage.local.get(keys, async (result) => {
-        if (chrome.runtime.lastError) {
-          reject(chrome.runtime.lastError);
+      this.browserAPI.storage.local.get(keys, async (result) => {
+        if (this.browserAPI.runtime.lastError) {
+          reject(this.browserAPI.runtime.lastError);
           return;
         }
 
@@ -160,9 +160,9 @@ class SecureStorage {
           encryptedItems[key] = await this.encryptionManager.encrypt(value);
         }
 
-        chrome.storage.local.set(encryptedItems, () => {
-          if (chrome.runtime.lastError) {
-            reject(chrome.runtime.lastError);
+        this.browserAPI.storage.local.set(encryptedItems, () => {
+          if (this.browserAPI.runtime.lastError) {
+            reject(this.browserAPI.runtime.lastError);
           } else {
             resolve();
           }
@@ -176,9 +176,9 @@ class SecureStorage {
   // Clear all encrypted local storage (except migration flag)
   async clear() {
     return new Promise((resolve, reject) => {
-      chrome.storage.local.get(null, (result) => {
-        if (chrome.runtime.lastError) {
-          reject(chrome.runtime.lastError);
+      this.browserAPI.storage.local.get(null, (result) => {
+        if (this.browserAPI.runtime.lastError) {
+          reject(this.browserAPI.runtime.lastError);
           return;
         }
 
@@ -189,9 +189,9 @@ class SecureStorage {
           return;
         }
 
-        chrome.storage.local.remove(keysToRemove, () => {
-          if (chrome.runtime.lastError) {
-            reject(chrome.runtime.lastError);
+        this.browserAPI.storage.local.remove(keysToRemove, () => {
+          if (this.browserAPI.runtime.lastError) {
+            reject(this.browserAPI.runtime.lastError);
           } else {
             resolve();
           }

@@ -57,8 +57,10 @@ class EncryptionManager {
       navigator.platform
     ];
 
-    // Add extension ID for additional uniqueness
-    if (typeof browser !== 'undefined' && browser.runtime && browser.runtime.id) {
+    // Add extension ID for additional uniqueness (browser-agnostic)
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
+      components.push(chrome.runtime.id);
+    } else if (typeof browser !== 'undefined' && browser.runtime && browser.runtime.id) {
       components.push(browser.runtime.id);
     }
 

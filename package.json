@@ -1,0 +1,28 @@
+{
+  "name": "auto-2fa-extension",
+  "version": "1.7.0",
+  "description": "Auto 2FA browser extension with unified codebase",
+  "scripts": {
+    "build": "node build.js",
+    "build:chrome": "node build.js chrome",
+    "build:firefox": "node build.js firefox",
+    "clean": "rimraf chrome firefox",
+    "dev": "npm run build && npm run watch",
+    "watch": "nodemon --watch src --ext js,html,css,json --exec \"npm run build\"",
+    "prepare": "npm run build"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "rimraf": "^5.0.1"
+  },
+  "keywords": [
+    "browser-extension",
+    "2fa",
+    "duo",
+    "authentication",
+    "chrome",
+    "firefox"
+  ],
+  "author": "Auto 2FA Contributors",
+  "license": "MIT"
+}

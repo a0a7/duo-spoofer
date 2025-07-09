@@ -5,6 +5,17 @@ class SecureStorage {
   constructor() {
     this.encryptionManager = new EncryptionManager();
     this.migrationKey = 'auto2fa_migrated_to_encrypted';
+    
+    // Browser API compatibility
+    this.browserAPI = (function() {
+      if (typeof chrome !== 'undefined' && chrome.runtime) {
+        return chrome;
+      } else if (typeof browser !== 'undefined' && browser.runtime) {
+        return browser;
+      } else {
+        throw new Error('No compatible browser API found');
+      }
+    })();
   }
 
   // Check if we need to migrate from sync storage to encrypted local storage
@@ -51,14 +62,12 @@ class SecureStorage {
       return true;
     } catch (error) {
       console.error('Migration failed:', error);
-      throw new Error('Failed to migrate data to encrypted storage');
+      return false;
     }
   }
 
-  // Get item from encrypted local storage
+  // Get an item from encrypted storage
   async getItem(key) {
-    await this.checkAndMigrate();
-    
     return new Promise((resolve, reject) => {
       browser.storage.local.get(key, async (result) => {
         if (browser.runtime.lastError) {
@@ -66,31 +75,28 @@ class SecureStorage {
           return;
         }
 
-        const encryptedData = result[key];
-        if (!encryptedData) {
-          resolve(undefined);
+        if (result[key] === undefined) {
+          resolve(null);
           return;
         }
 
         try {
-          const decryptedData = await this.encryptionManager.decrypt(encryptedData);
+          const decryptedData = await this.encryptionManager.decrypt(result[key]);
           resolve(decryptedData);
         } catch (error) {
-          console.error('Failed to decrypt data for key:', key, error);
-          reject(error);
+          console.error(`Failed to decrypt data for key ${key}:`, error);
+          // Return null instead of rejecting to handle corrupted data gracefully
+          resolve(null);
         }
       });
     });
   }
 
-  // Set item in encrypted local storage
+  // Set an item in encrypted storage
   async setItem(key, value) {
-    await this.checkAndMigrate();
-    
-    try {
-      const encryptedData = await this.encryptionManager.encrypt(value);
-      
-      return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const encryptedData = await this.encryptionManager.encrypt(value);
         browser.storage.local.set({ [key]: encryptedData }, () => {
           if (browser.runtime.lastError) {
             reject(browser.runtime.lastError);
@@ -98,14 +104,13 @@ class SecureStorage {
             resolve();
           }
         });
-      });
-    } catch (error) {
-      console.error('Failed to encrypt data for key:', key, error);
-      throw error;
-    }
+      } catch (error) {
+        reject(error);
+      }
+    });
   }
 
-  // Remove item from encrypted local storage
+  // Remove an item from storage
   async removeItem(key) {
     return new Promise((resolve, reject) => {
       browser.storage.local.remove(key, () => {
@@ -118,10 +123,8 @@ class SecureStorage {
     });
   }
 
-  // Get multiple items from encrypted local storage
+  // Get multiple items from encrypted storage
   async getItems(keys) {
-    await this.checkAndMigrate();
-    
     return new Promise((resolve, reject) => {
       browser.storage.local.get(keys, async (result) => {
         if (browser.runtime.lastError) {
@@ -129,33 +132,34 @@ class SecureStorage {
           return;
         }
 
-        try {
-          const decryptedResult = {};
-          for (const [key, encryptedData] of Object.entries(result)) {
-            if (encryptedData && key !== this.migrationKey) {
-              decryptedResult[key] = await this.encryptionManager.decrypt(encryptedData);
+        const decryptedResult = {};
+        
+        for (const [key, encryptedValue] of Object.entries(result)) {
+          if (encryptedValue !== undefined) {
+            try {
+              decryptedResult[key] = await this.encryptionManager.decrypt(encryptedValue);
+            } catch (error) {
+              console.error(`Failed to decrypt data for key ${key}:`, error);
+              // Skip corrupted entries
             }
           }
-          resolve(decryptedResult);
-        } catch (error) {
-          console.error('Failed to decrypt data:', error);
-          reject(error);
         }
+
+        resolve(decryptedResult);
       });
     });
   }
 
-  // Set multiple items in encrypted local storage
+  // Set multiple items in encrypted storage
   async setItems(items) {
-    await this.checkAndMigrate();
-    
-    try {
-      const encryptedItems = {};
-      for (const [key, value] of Object.entries(items)) {
-        encryptedItems[key] = await this.encryptionManager.encrypt(value);
-      }
-      
-      return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const encryptedItems = {};
+        
+        for (const [key, value] of Object.entries(items)) {
+          encryptedItems[key] = await this.encryptionManager.encrypt(value);
+        }
+
         browser.storage.local.set(encryptedItems, () => {
           if (browser.runtime.lastError) {
             reject(browser.runtime.lastError);
@@ -163,11 +167,10 @@ class SecureStorage {
             resolve();
           }
         });
-      });
-    } catch (error) {
-      console.error('Failed to encrypt data:', error);
-      throw error;
-    }
+      } catch (error) {
+        reject(error);
+      }
+    });
   }
 
   // Clear all encrypted local storage (except migration flag)
@@ -195,6 +198,116 @@ class SecureStorage {
         });
       });
     });
+  }
+
+  // Device management methods
+
+  // Get device info structure
+  async getDeviceInfo() {
+    try {
+      const deviceInfo = await this.getItem("deviceInfo");
+      return this.sanitizeDeviceInfo(deviceInfo);
+    } catch (error) {
+      console.error("Failed to get device info:", error);
+      return this.sanitizeDeviceInfo(null);
+    }
+  }
+
+  // Set device info structure
+  async setDeviceInfo(info) {
+    const sanitized = this.sanitizeDeviceInfo(info);
+    await this.setItem("deviceInfo", sanitized);
+    return sanitized;
+  }
+
+  // Sanitize device info to ensure proper structure
+  sanitizeDeviceInfo(info) {
+    if (!info || info.pkey) {
+      // Old format or no data, create new structure
+      return {
+        devices: info && info.pkey ? [info.pkey] : [],
+        version: "1.7.0"
+      };
+    }
+    
+    // Ensure devices is an array
+    if (!Array.isArray(info.devices)) {
+      info.devices = [];
+    }
+    
+    return {
+      devices: info.devices,
+      version: info.version || "1.7.0"
+    };
+  }
+
+  // Get all devices
+  async getAllDevices() {
+    try {
+      const deviceInfo = await this.getDeviceInfo();
+      if (!deviceInfo.devices || deviceInfo.devices.length === 0) {
+        return [];
+      }
+
+      const deviceData = await this.getItems(deviceInfo.devices);
+      return Object.values(deviceData).filter(device => device && device.pkey);
+    } catch (error) {
+      console.error("Failed to get all devices:", error);
+      return [];
+    }
+  }
+
+  // Get a specific device by ID
+  async getDevice(deviceId) {
+    try {
+      return await this.getItem(deviceId);
+    } catch (error) {
+      console.error(`Failed to get device ${deviceId}:`, error);
+      return null;
+    }
+  }
+
+  // Add a new device
+  async addDevice(device) {
+    try {
+      // Generate device key if not provided
+      if (!device.pkey) {
+        device.pkey = Date.now().toString() + '_' + Math.random().toString(36).substr(2, 9);
+      }
+
+      // Store the device
+      await this.setItem(device.pkey, device);
+
+      // Update device info
+      const deviceInfo = await this.getDeviceInfo();
+      if (!deviceInfo.devices.includes(device.pkey)) {
+        deviceInfo.devices.push(device.pkey);
+        await this.setDeviceInfo(deviceInfo);
+      }
+
+      return device;
+    } catch (error) {
+      console.error("Failed to add device:", error);
+      throw error;
+    }
+  }
+
+  // Remove a device
+  async removeDevice(deviceId) {
+    try {
+      // Remove the device data
+      await this.removeItem(deviceId);
+
+      // Update device info
+      const deviceInfo = await this.getDeviceInfo();
+      deviceInfo.devices = deviceInfo.devices.filter(pkey => pkey !== deviceId);
+      await this.setDeviceInfo(deviceInfo);
+
+      return true;
+    } catch (error) {
+      console.error(`Failed to remove device ${deviceId}:`, error);
+      throw error;
+    }
   }
 }
 

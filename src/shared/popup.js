@@ -78,12 +78,12 @@ document.getElementById("introButton").addEventListener("click", function () {
 
 // Open welcome page
 document.getElementById("helpButton").addEventListener("click", function () {
-  chrome.tabs.create({ url: chrome.runtime.getURL("welcome/index.html") });
+  browserAPI.tabs.create({ url: browserAPI.runtime.getURL("welcome/index.html") });
 });
 
 // Open settings page
 document.getElementById("gear").addEventListener("click", function () {
-  chrome.tabs.create({ url: chrome.runtime.getURL("options.html") });
+  browserAPI.tabs.create({ url: browserAPI.runtime.getURL("options.html") });
 });
 
 // Remove devices
@@ -224,9 +224,9 @@ async function getQRCode() {
   // Start searching for QR code
   searchInterval = setInterval(async () => {
     try {
-      let [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+      let [tab] = await browserAPI.tabs.query({ active: true, lastFocusedWindow: true });
       
-      const result = await chrome.tabs.sendMessage(tab.id, { task: "getQRCode" }).then((response) => {
+      const result = await browserAPI.tabs.sendMessage(tab.id, { task: "getQRCode" }).then((response) => {
         return response;
       }).catch((error) => {
         return null;
@@ -329,11 +329,11 @@ window.addEventListener('beforeunload', () => {
 
 // Debug functions (can be removed in production)
 async function clearAllData() {
-  await new Promise((resolve) => chrome.storage.session.clear(resolve));
-  await new Promise((resolve) => chrome.storage.local.clear(resolve));
+  await new Promise((resolve) => browserAPI.storage.session.clear(resolve));
+  await new Promise((resolve) => browserAPI.storage.local.clear(resolve));
 }
 
 async function sendMessage(intent) {
-  let response = await chrome.runtime.sendMessage(intent);
+  let response = await browserAPI.runtime.sendMessage(intent);
   console.log(response);
 }
