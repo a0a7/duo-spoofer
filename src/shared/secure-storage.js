@@ -76,17 +76,36 @@ class SecureStorage {
         }
 
         if (result[key] === undefined) {
+          console.log(`Key ${key} not found in storage`);
           resolve(null);
           return;
         }
 
         try {
+          console.log(`Attempting to decrypt data for key: ${key}`);
           const decryptedData = await this.encryptionManager.decrypt(result[key]);
+          console.log(`Successfully decrypted data for key: ${key}`);
           resolve(decryptedData);
         } catch (error) {
           console.error(`Failed to decrypt data for key ${key}:`, error);
-          // Return null instead of rejecting to handle corrupted data gracefully
-          resolve(null);
+          
+          // If this is a critical key like deviceInfo, let's try to recover
+          if (key === 'deviceInfo') {
+            console.log('Critical key failed decryption, checking for legacy data...');
+            // Try to get data from sync storage as fallback
+            this.browserAPI.storage.sync.get(key, (syncResult) => {
+              if (syncResult[key] && Object.keys(syncResult[key]).length > 0) {
+                console.log('Found legacy data in sync storage, returning that');
+                resolve(syncResult[key]);
+              } else {
+                console.log('No legacy data found, returning null');
+                resolve(null);
+              }
+            });
+          } else {
+            // For other keys, just return null
+            resolve(null);
+          }
         }
       });
     });
@@ -205,19 +224,67 @@ class SecureStorage {
   // Get device info structure
   async getDeviceInfo() {
     try {
-      const deviceInfo = await this.getItem("deviceInfo");
-      return this.sanitizeDeviceInfo(deviceInfo);
+      // First try encrypted storage
+      let deviceInfo = await this.getItem('deviceInfo');
+      if (deviceInfo !== null) {
+        return deviceInfo;
+      }
+
+      console.log('No encrypted deviceInfo found, checking fallback storage...');
+      
+      // Try unencrypted fallback
+      deviceInfo = await this.getItemUnencrypted('deviceInfo');
+      if (deviceInfo !== null) {
+        console.log('Found deviceInfo in unencrypted fallback storage');
+        return deviceInfo;
+      }
+
+      // Try sync storage as last resort
+      deviceInfo = await new Promise((resolve) => {
+        this.browserAPI.storage.sync.get('deviceInfo', (result) => {
+          resolve(result.deviceInfo || null);
+        });
+      });
+
+      if (deviceInfo !== null) {
+        console.log('Found deviceInfo in sync storage, attempting to migrate...');
+        // Try to save to encrypted storage for next time
+        try {
+          await this.setItem('deviceInfo', deviceInfo);
+          console.log('Successfully migrated deviceInfo to encrypted storage');
+        } catch (error) {
+          console.warn('Failed to migrate to encrypted storage, using fallback:', error);
+          await this.setItemUnencrypted('deviceInfo', deviceInfo);
+        }
+      }
+
+      return deviceInfo;
     } catch (error) {
-      console.error("Failed to get device info:", error);
-      return this.sanitizeDeviceInfo(null);
+      console.error('Failed to get device info:', error);
+      return null;
     }
   }
 
-  // Set device info structure
-  async setDeviceInfo(info) {
-    const sanitized = this.sanitizeDeviceInfo(info);
-    await this.setItem("deviceInfo", sanitized);
-    return sanitized;
+  // Enhanced setDeviceInfo with fallback
+  async setDeviceInfo(deviceInfo) {
+    try {
+      // First try encrypted storage
+      await this.setItem('deviceInfo', deviceInfo);
+      console.log('Successfully saved deviceInfo to encrypted storage');
+      return;
+    } catch (error) {
+      console.warn('Failed to save to encrypted storage, using fallback:', error);
+      
+      try {
+        // Use unencrypted fallback
+        await this.setItemUnencrypted('deviceInfo', deviceInfo);
+        console.log('Successfully saved deviceInfo to unencrypted fallback storage');
+        return;
+      } catch (fallbackError) {
+        console.error('Failed to save to fallback storage:', fallbackError);
+        throw fallbackError;
+      }
+    }
   }
 
   // Sanitize device info to ensure proper structure
@@ -332,6 +399,55 @@ class SecureStorage {
       console.error("Failed to clear all data:", error);
       throw error;
     }
+  }
+
+  // Debug method to test encryption/decryption consistency
+  async testEncryption() {
+    try {
+      const testData = { test: 'encryption test', timestamp: Date.now() };
+      console.log('Testing encryption with data:', testData);
+      
+      // Test encrypt/decrypt cycle
+      const encrypted = await this.encryptionManager.encrypt(testData);
+      console.log('Encrypted data:', encrypted);
+      
+      const decrypted = await this.encryptionManager.decrypt(encrypted);
+      console.log('Decrypted data:', decrypted);
+      
+      const matches = JSON.stringify(testData) === JSON.stringify(decrypted);
+      console.log('Encryption test result:', matches ? 'PASS' : 'FAIL');
+      
+      return matches;
+    } catch (error) {
+      console.error('Encryption test failed:', error);
+      return false;
+    }
+  }
+
+  // Fallback storage methods for when encryption fails
+  async setItemUnencrypted(key, value) {
+    return new Promise((resolve, reject) => {
+      this.browserAPI.storage.local.set({ [`unencrypted_${key}`]: value }, () => {
+        if (this.browserAPI.runtime.lastError) {
+          reject(this.browserAPI.runtime.lastError);
+        } else {
+          console.warn(`Stored ${key} without encryption as fallback`);
+          resolve();
+        }
+      });
+    });
+  }
+
+  async getItemUnencrypted(key) {
+    return new Promise((resolve, reject) => {
+      this.browserAPI.storage.local.get(`unencrypted_${key}`, (result) => {
+        if (this.browserAPI.runtime.lastError) {
+          reject(this.browserAPI.runtime.lastError);
+        } else {
+          resolve(result[`unencrypted_${key}`] || null);
+        }
+      });
+    });
   }
 }
 

@@ -4,6 +4,11 @@ importScripts('encryption.js', 'secure-storage.js');
 // Initialize secure storage
 const secureStorage = new SecureStorage();
 
+// Test encryption on startup
+secureStorage.testEncryption().then(result => {
+  console.log('Worker startup encryption test:', result ? 'PASS' : 'FAIL');
+});
+
 // Welcome page on install
 chrome.runtime.onInstalled.addListener((event) => {
   if (event.reason == "install") {
@@ -95,14 +100,15 @@ async function zeroClickLogin(id, signal, verificationCode) {
   }
   // lastZeroClick = time;
   // Get all devices that use 0 clicks (1 indicates zero-click login, 1-3 total range)
-  let deviceInfo = await getDeviceInfo();
-  let allDevices = await secureStorage.getItems(deviceInfo.devices);
-  let zeroClickDevices = Object.values(allDevices).filter((device) => device.clickLevel == "1");
-  console.log("Eligible devices to 0 click in with", zeroClickDevices);
-  if (!zeroClickDevices.length) {
-    console.log("No devices to zero-click with, aborting");
-    return;
-  }
+  try {
+    let allDevices = await secureStorage.getAllDevices();
+    console.log("All devices", allDevices);
+    let zeroClickDevices = allDevices.filter((device) => device.clickLevel == "1");
+    console.log("Eligible devices to 0 click in with", zeroClickDevices);
+    if (!zeroClickDevices.length) {
+      console.log("No devices to zero-click with, aborting");
+      return;
+    }
   // For each device that can be zero clicked
   console.log("Attempting to zero-click login");
   let attempts = 0;
@@ -127,10 +133,10 @@ async function zeroClickLogin(id, signal, verificationCode) {
     });
     if (result === false) return;
     // Keep searching until one of the devices succeeds
-    for (let info of zeroClickDevices) {
-      console.log("Checking " + info.name);
+    for (let device of zeroClickDevices) {
+      console.log("Checking " + device.name);
       let transactions = (
-        await buildRequest(info, "GET", "/push/v2/device/transactions").catch((error) => {
+        await buildRequest(device, "GET", "/push/v2/device/transactions").catch((error) => {
           // Stop trying if getting transactions failed (for any of them?)
           console.error(error);
           stopClickLogin(loadingInterval, "#FC0D1B", "Fail", id);
@@ -149,8 +155,8 @@ async function zeroClickLogin(id, signal, verificationCode) {
         //     // nah
         //     stopClickLogin(loadingInterval, "FC0D1B", "IP");
         // }
-        console.log("Transaction found for device " + info.name);
-        await approveTransactionHandler(info, transactions, transactions[0].urgid, verificationCode)
+        console.log("Transaction found for device " + device.name);
+        await approveTransactionHandler(device, transactions, transactions[0].urgid, verificationCode)
           .then((success) => {
             // Signal success
             chrome.action.setBadgeTextColor({ color: `#FFF`, tabId: id }).catch((e) => { });
@@ -178,6 +184,10 @@ async function zeroClickLogin(id, signal, verificationCode) {
       }
     }
   }, zeroClickCooldown);
+  } catch (error) {
+    console.error("Failed to get devices for zero-click login:", error);
+    return;
+  }
 }
 
 // function extractIP(attributes) {
@@ -208,37 +218,27 @@ async function clearBadge(id) {
 // Gets the device info
 async function getDeviceInfo() {
   try {
-    const deviceInfo = await secureStorage.getItem("deviceInfo");
+    let deviceInfo = await secureStorage.getDeviceInfo();
+    // If decryption failed (returns null), initialize with empty structure
+    if (deviceInfo === null) {
+      console.log("DeviceInfo decryption failed or not found, initializing new structure");
+      deviceInfo = undefined; // Let sanitizeData handle initialization
+    }
     return await sanitizeData(deviceInfo);
   } catch (error) {
-    console.error("Failed to get device info from secure storage:", error);
-    // Try to fall back to old sync storage if secure storage fails
-    return new Promise((resolve) => {
-      chrome.storage.sync.get("deviceInfo", async (json) => {
-        const syncData = json.deviceInfo;
-        if (syncData) {
-          console.log("Found data in sync storage, migrating...");
-          try {
-            await secureStorage.setItem("deviceInfo", syncData);
-            await chrome.storage.sync.remove("deviceInfo");
-            resolve(await sanitizeData(syncData));
-          } catch (migrationError) {
-            console.error("Migration failed:", migrationError);
-            resolve(await sanitizeData(syncData));
-          }
-        } else {
-          resolve(await sanitizeData(null));
-        }
-      });
-    });
+    console.error("Failed to get device info:", error);
+    // Return a clean initialization
+    return await sanitizeData(undefined);
   }
 }
 
 async function setDeviceInfo(info) {
   let sanitized = await sanitizeData(info);
+  // if (JSON.stringify(sanitized) !== JSON.stringify(info)) {
   console.log("Contents changed! Updating device info");
   console.log("Old", info, "New", sanitized);
-  await secureStorage.setItem("deviceInfo", sanitized);
+  await secureStorage.setDeviceInfo(sanitized);
+  // }
   return sanitized;
 }
 
@@ -262,7 +262,7 @@ async function sanitizeData(info) {
     // Break apart each device into their own JSON objects
     for (let device of newInfo.devices) {
       console.log("Setting device info for ", device.pkey)
-      await secureStorage.setItem(device.pkey, device); // Store each device separately
+      await secureStorage.addDevice(device); // Store device using SecureStorage
     }
     // Devices array now only holds it's pkey, and it stores the device info under that pkey separately
     newInfo.devices = newInfo.devices.map((device) => device.pkey);

@@ -9,7 +9,7 @@ class EncryptionManager {
     this.derivationAlgorithm = 'PBKDF2';
     this.derivationIterations = 100000;
     this.salt = new Uint8Array([
-      // Fixed salt for key derivation (in production, this could be randomized per installation)
+      // Fixed salt for key derivation ( in production, this could be randomized per installation)
       0x73, 0x61, 0x6c, 0x74, 0x5f, 0x66, 0x6f, 0x72, 
       0x5f, 0x64, 0x75, 0x6f, 0x5f, 0x32, 0x66, 0x61
     ]);
@@ -46,15 +46,15 @@ class EncryptionManager {
 
   // Generate a deterministic fingerprint from browser characteristics
   async generateBrowserFingerprint() {
+    // Use only stable characteristics that are consistent across all contexts
     const components = [
       navigator.userAgent,
       navigator.language,
-      screen.width,
-      screen.height,
-      screen.colorDepth,
-      new Date().getTimezoneOffset(),
-      navigator.hardwareConcurrency || 'unknown',
-      navigator.platform
+      navigator.platform,
+      // Use fixed values for screen dimensions to ensure consistency across contexts
+      '1920', '1080', '24', // Default screen dimensions and color depth
+      new Date().getTimezoneOffset().toString(),
+      (navigator.hardwareConcurrency || 'unknown').toString()
     ];
 
     // Add extension ID for additional uniqueness (browser-agnostic)
@@ -64,7 +64,11 @@ class EncryptionManager {
       components.push(browser.runtime.id);
     }
 
+    // Add a fixed salt to make the key unique to this extension
+    components.push('duo-spoofer-key-salt-2024');
+
     const fingerprint = components.join('|');
+    console.log('Browser fingerprint components:', components);
     
     // Hash the fingerprint for additional security
     const encoder = new TextEncoder();

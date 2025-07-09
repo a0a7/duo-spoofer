@@ -21,7 +21,7 @@ body {
     color: #000000;
     border-radius: 12px;
     overflow: hidden;
-    margin: 8px;
+    /*margin: 8px;*/
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -552,12 +552,6 @@ dialog {
         padding: 0;
         border: none;
     }
-}
-
-select {
-    height: 25px;
-    max-width: 140px;
-    border-radius: 3px;
 }
 
 /* Override dark theme - force white background always */

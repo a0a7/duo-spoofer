@@ -11,26 +11,29 @@
 </head>
 
 <!-- display-none prevents weird visual artifacts from appearing while loading. JS clears the display -->
-<body id="content" style="display: none">
+<body id="content" style="display: none;">
   <!-- Logo centered at top -->
   <div style="text-align: center; padding: 16px 0 8px 0;">
     <img style="width: 80px; height: auto; border: none;" src="welcome/logo.png" alt="autoauth" />
   </div>
   
-  <div style="display: flex; gap: 8px; align-items: center; padding: 0 16px;">
+  <div style="display: flex; gap: 8px; align-items: center; padding: 0 16px 0 16px;">
     <!-- Select device -->
     <select id="deviceSelect">
       <option value="-1">Add Device...</option>
     </select>
-    <!-- Device TOTP -->
+          <!-- Device TOTP -->
     <!-- TOTP -->
-    <a id="totp" style="display: none;">
+
+      <a id="totp" style="display: none;">
       <svg viewBox="0 0 16 16">
         <circle cx="8" cy="8" r="4" id="totpCircle" style="animation-duration: 30s"></circle>
       </svg>
       <p id="totpCode"></p>
     </a>
   </div>
+
+
   <hr style="margin: 8px 16px;" />
 
   <!-- Welcome screen -->
@@ -95,6 +98,7 @@
   <div class="screen" id="activationSuccess">
     <h4>Success!</h4>
     <p>Your device has been added successfully.</p>
+    <p id="newDeviceDisplay" style="margin: 16px 0; padding: 12px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; text-align: center;"></p>
     <button class="toMainScreen">Continue</button>
   </div>
 

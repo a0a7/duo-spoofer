@@ -45,40 +45,36 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         
         if (code && code.src) {
             console.log("QR code found:", code.src);
-            // Extract activation code from QR URL
-            let activationCode;
-            
             try {
-                const urlParams = new URL(code.src);
-                activationCode = urlParams.searchParams.get('value');
-                console.log("URL params extraction result:", activationCode);
+                const outerUrl = new URL(code.src);
+                const encodedInnerUrl = outerUrl.searchParams.get('value');
+                const outerDomain = outerUrl.hostname;
+
+                let activationCode = null;
+
+                if (encodedInnerUrl) {
+                    const innerUrl = new URL(decodeURIComponent(encodedInnerUrl));
+                    const activatePath = innerUrl.pathname;
+
+                    // Extract code after /activate/
+                    const match = activatePath.match(/\/activate\/(.+)$/);
+                    if (match) {
+                        const rawCode = match[1];
+                        const base64Domain = btoa(outerDomain).replace(/=+$/, '');
+                        activationCode = `${rawCode}-${base64Domain}`;
+
+                        console.log("Final extracted activation code:", activationCode);
+                        sendResponse({ success: true, activationCode: activationCode });
+                        return;
+                    }
+                }
             } catch (e) {
-                console.log("Failed to parse as URL, trying string extraction");
+                console.error("Error while processing activation code:", e);
             }
-            
-            if (!activationCode && code.src.includes('value=')) {
-                activationCode = code.src.substring(code.src.indexOf('value=') + 6);
-                // Remove any additional parameters
-                const ampIndex = activationCode.indexOf('&');
-                if (ampIndex !== -1) {
-                    activationCode = activationCode.substring(0, ampIndex);
-                }
-                // URL decode the value
-                try {
-                    activationCode = decodeURIComponent(activationCode);
-                    console.log("String extraction + decode result:", activationCode);
-                } catch (e) {
-                    console.log("Failed to URL decode:", e);
-                }
-            }
-            
-            if (activationCode) {
-                console.log("Final extracted activation code:", activationCode);
-                sendResponse({ success: true, activationCode: activationCode });
-            } else {
-                console.log("Could not extract activation code from QR");
-                sendResponse({ success: false, error: "Could not extract activation code from QR" });
-            }
+
+            // Fallback if nothing was returned successfully
+            console.log("Could not extract activation code from QR");
+            sendResponse({ success: false, error: "Could not extract activation code from QR" });
         } else {
             console.log("No QR code found on page");
             sendResponse({ success: false, error: "No QR code found" });
