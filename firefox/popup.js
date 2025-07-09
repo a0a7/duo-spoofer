@@ -87,6 +87,8 @@ for (let i = 0; i < mainButtons.length; i++) {
     // Refresh the device list when going to main screen
     await refreshDeviceList();
     changeScreen("main");
+    // Immediately update TOTP when going to main screen
+    updateTOTP();
   });
 }
 
@@ -141,6 +143,8 @@ let totpInterval = null;
 // Function to refresh device list and update UI
 async function refreshDeviceList() {
   const devices = await secureStorage.getAllDevices();
+  console.log("refreshDeviceList: found", devices.length, "devices");
+  
   let deviceSelect = document.getElementById("deviceSelect");
   
   // Clear existing options except "Add Device..."
@@ -151,19 +155,22 @@ async function refreshDeviceList() {
   // Add devices to dropdown
   for (const device of devices) {
     let option = document.createElement("option");
-    option.value = device.id;
-    option.text = device.name;
+    option.value = device.pkey || device.id; // Use pkey as primary, id as fallback
+    option.text = device.name || `Device ${device.pkey}`;
     deviceSelect.appendChild(option);
+    console.log("Added device to dropdown:", option.value, option.text);
   }
   
   // If we have devices, select the first one
   if (devices.length > 0) {
     deviceSelect.selectedIndex = 1; // First device (index 0 is "Add Device...")
+    console.log("Selected first device, calling updateTOTP");
     updateTOTP();
   } else {
     deviceSelect.selectedIndex = 0; // "Add Device..." option
     document.getElementById("totpCode").textContent = "------";
     document.getElementById("totp").style.display = "none";
+    console.log("No devices found, hiding TOTP");
   }
 }
 
@@ -204,7 +211,10 @@ async function updateTOTP() {
   let selectedDeviceId = deviceSelect.value;
   let totpElement = document.getElementById("totp");
   
+  console.log("updateTOTP called with selectedDeviceId:", selectedDeviceId);
+  
   if (selectedDeviceId === "-1" || !selectedDeviceId) {
+    console.log("No device selected, hiding TOTP");
     document.getElementById("totpCode").textContent = "------";
     totpElement.style.display = "none";
     return;
@@ -212,17 +222,23 @@ async function updateTOTP() {
 
   try {
     const device = await secureStorage.getDevice(selectedDeviceId);
-    if (!device || !device.secret) {
+    console.log("Retrieved device for TOTP:", device ? "found" : "null");
+    
+    if (!device || (!device.secret && !device.hotp_secret)) {
+      console.log("Device has no secret or hotp_secret, hiding TOTP");
       document.getElementById("totpCode").textContent = "------";
       totpElement.style.display = "none";
       return;
     }
 
+    console.log("Showing TOTP element and generating code");
     // Show the TOTP element
     totpElement.style.display = "flex";
 
-    // Generate TOTP
-    const token = totp.generate(device.secret);
+    // Generate TOTP using the correct secret property
+    const secret = device.secret || device.hotp_secret;
+    console.log("Using secret for TOTP:", secret ? "present" : "missing");
+    const token = totp.generate(secret);
     document.getElementById("totpCode").textContent = token;
 
     // Update circle animation
@@ -235,6 +251,23 @@ async function updateTOTP() {
     totpElement.style.display = "none";
   }
 }
+
+// Add click-to-copy functionality for TOTP
+document.getElementById("totp").addEventListener("click", function() {
+  const totpCode = document.getElementById("totpCode").textContent;
+  if (totpCode && totpCode !== "------" && totpCode !== "Error") {
+    navigator.clipboard.writeText(totpCode).then(() => {
+      // Show visual feedback
+      const originalText = totpCode;
+      document.getElementById("totpCode").textContent = "Copied!";
+      setTimeout(() => {
+        document.getElementById("totpCode").textContent = originalText;
+      }, 1000);
+    }).catch(err => {
+      console.error('Failed to copy TOTP code:', err);
+    });
+  }
+});
 
 // Screen management
 function changeScreen(screenName) {
@@ -513,7 +546,8 @@ async function activateDevice(rawCode) {
         const deviceData = {
           id: newDevice.pkey,
           name: newDevice.name,
-          secret: newDevice.secret,
+          secret: newDevice.secret || newDevice.hotp_secret, // Use secret or hotp_secret
+          hotp_secret: newDevice.hotp_secret, // Keep original property too
           host: host,
           publicRaw: publicRaw,
           privateRaw: privateRaw,
@@ -521,6 +555,11 @@ async function activateDevice(rawCode) {
           // Include any other necessary properties from newDevice
           ...newDevice
         };
+        
+        console.log("Storing device data:", deviceData);
+        console.log("Device secret being stored:", deviceData.secret);
+        console.log("Device hotp_secret being stored:", deviceData.hotp_secret);
+        console.log("NewDevice from Duo response:", newDevice);
         
         await secureStorage.addDevice(deviceData);
         
@@ -757,14 +796,14 @@ async function updatePage(deviceInfo) {
   // Add to select device box
   for (let device of allDevices) {
     let newDevice = document.createElement("option");
-    newDevice.value = device.id;
+    newDevice.value = device.pkey || device.id; // Use pkey as primary, id as fallback
     newDevice.innerText = device.name;
     deviceSelect.appendChild(newDevice);
     deviceSelect.insertBefore(newDevice, deviceSelect.firstChild);
   }
   // If we're not on the "Add device..." device
   if (deviceInfo.activeDevice != -1) {
-    let activeDevice = allDevices.find(device => device.id === deviceInfo.activeDevice);
+    let activeDevice = allDevices.find(device => (device.pkey || device.id) === deviceInfo.activeDevice);
     if (activeDevice) {
       deviceSettingsDiv.style.display = "revert";
       deviceName.value = activeDevice.name;

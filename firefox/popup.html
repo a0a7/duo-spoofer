@@ -22,17 +22,7 @@
     <select id="deviceSelect">
       <option value="-1">Add Device...</option>
     </select>
-          <!-- Device TOTP -->
-    <!-- TOTP -->
-
-      <a id="totp" style="display: none;">
-      <svg viewBox="0 0 16 16">
-        <circle cx="8" cy="8" r="4" id="totpCircle" style="animation-duration: 30s"></circle>
-      </svg>
-      <p id="totpCode"></p>
-    </a>
   </div>
-
 
   <hr style="margin: 8px 16px;" />
 
@@ -88,6 +78,22 @@
 
   <!-- Main TOTP screen -->
   <div class="screen" id="main">
+    <p style="font-size: 12px; margin: 0 0 20px 0 !important;">The extension should now sign in automatically when you select the bottom <b>Duo Push</b> (Android OR iOS) option as your preferred way to sign in.</p>
+    <!-- TOTP Display -->
+    <div style="padding: 0 0 16px 0;">
+      <a id="totp" style="display: none;" title="Click to copy TOTP code to clipboard">
+        <div style="font-size: 12px; color: #666; margin-bottom: 4px;">Otherwise, use the below code to sign in via the <b>Duo Mobile Passcode</b> option.</div>
+        <div id="totp-inside">
+          <svg viewBox="0 0 16 16">
+            <circle cx="8" cy="8" r="4" id="totpCircle" style="animation-duration: 30s"></circle>
+          </svg>
+          <div style="flex: 1;">
+            <p id="totpCode">------</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
     <div style="display: flex; justify-content: space-between; margin-bottom: 10px">
       <button id="addDevice">Add Device</button>
       <button id="removeDevice">Remove Device</button>

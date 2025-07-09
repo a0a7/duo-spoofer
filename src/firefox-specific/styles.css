@@ -304,9 +304,17 @@ dialog {
 }
 
 #totpCode {
-    font-size: 12px;
-    padding: 2px;
+    font-size: 18px;
+    font-weight: 600;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    padding: 8px 12px;
     margin: 0;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    letter-spacing: 2px;
+    text-align: center;
+    color: #2c3e50 !important;
 }
 
 #gear {
@@ -619,27 +627,37 @@ dialog {
     }
 }
 
-/* Ripped from Authenticator extension <3 */
+/* Enhanced TOTP display */
 #totp {
     user-select: none;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 2px;
-    width: 100%;
+    gap: 12px;
+    background-color: #f8f9fa;
+    padding: 12px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+#totp:hover {
+    background-color: #e9ecef;
+    border-color: #dee2e6;
 }
 
 #totp svg {
-    width: 12px;
-    height: 12px;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
 }
 
 #totp circle {
     fill: none;
-    stroke: grey;
+    stroke: #28a745;
     transform: rotate(-90deg);
     transform-origin: 50% 50%;
-    stroke-width: 8px;
+    stroke-width: 2;
     stroke-dasharray: 25.12;
     animation-name: timer;
     animation-iteration-count: infinite;

@@ -312,12 +312,15 @@ class SecureStorage {
   async getAllDevices() {
     try {
       const deviceInfo = await this.getDeviceInfo();
-      if (!deviceInfo.devices || deviceInfo.devices.length === 0) {
+      
+      if (!deviceInfo || !deviceInfo.devices || deviceInfo.devices.length === 0) {
         return [];
       }
 
       const deviceData = await this.getItems(deviceInfo.devices);
-      return Object.values(deviceData).filter(device => device && device.pkey);
+      const devices = Object.values(deviceData).filter(device => device && device.pkey);
+      
+      return devices;
     } catch (error) {
       console.error("Failed to get all devices:", error);
       return [];
@@ -422,6 +425,16 @@ class SecureStorage {
       console.error('Encryption test failed:', error);
       return false;
     }
+  }
+
+  // Debug method to inspect raw storage contents
+  async debugStorageContents() {
+    return new Promise((resolve) => {
+      this.browserAPI.storage.local.get(null, (result) => {
+        console.log("Raw storage contents:", result);
+        resolve(result);
+      });
+    });
   }
 
   // Fallback storage methods for when encryption fails
