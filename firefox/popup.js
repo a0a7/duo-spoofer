@@ -228,9 +228,38 @@ async function getQRCode() {
     try {
       let [tab] = await browser.tabs.query({ active: true, lastFocusedWindow: true });
       
+      if (!tab || !tab.url) {
+        failedAttempts++;
+        qrSearchText.textContent = "No active tab found...";
+        console.log("No active tab found");
+        return;
+      }
+      
+      console.log("Checking tab:", tab.url);
+      
+      // Skip chrome:// and extension pages
+      if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://') || 
+          tab.url.startsWith('moz-extension://') || tab.url.startsWith('about:')) {
+        qrSearchText.textContent = "Please navigate to the Duo activation page...";
+        console.log("Skipping system page:", tab.url);
+        return;
+      }
+      
+      // Check if it's a Duo page
+      if (!tab.url.includes('duosecurity.com')) {
+        qrSearchText.textContent = "Please navigate to your Duo activation page...";
+        qrErrorText.textContent = `Current page: ${new URL(tab.url).hostname}`;
+        return;
+      }
+      
+      console.log("Sending message to content script on tab:", tab.id);
+      
       const result = await browser.tabs.sendMessage(tab.id, { task: "getQRCode" }).then((response) => {
+        console.log("Content script response:", response);
         return response;
       }).catch((error) => {
+        console.log("Content script error:", error);
+        qrErrorText.textContent = "Content script not responding. Try refreshing the Duo page.";
         return null;
       });
 
@@ -238,6 +267,7 @@ async function getQRCode() {
         // Found QR code
         clearInterval(searchInterval);
         qrSearchText.textContent = "QR code found! Processing...";
+        console.log("Found activation code:", result.activationCode);
         
         try {
           await activateDevice(result.activationCode);
@@ -246,15 +276,24 @@ async function getQRCode() {
           qrErrorText.textContent = "Failed to activate device. Please try manual activation.";
           console.error("Activation error:", error);
         }
+      } else if (result && result.error) {
+        qrSearchText.textContent = "Scanning page for QR code...";
+        qrErrorText.textContent = result.error;
+        console.log("QR scan result:", result.error);
+      } else if (result === null) {
+        qrSearchText.textContent = "Waiting for page to load...";
+        qrErrorText.textContent = "Make sure you're on the Duo activation page";
       }
     } catch (error) {
       // Tab might not have content script, that's okay
       failedAttempts++;
+      console.log("QR scan attempt", failedAttempts, "error:", error);
+      qrSearchText.textContent = `Scanning... (attempt ${failedAttempts})`;
       
-      if (failedAttempts > 10) {
+      if (failedAttempts > 15) {
         clearInterval(searchInterval);
         qrSearchText.textContent = "Could not find QR code automatically.";
-        qrErrorText.textContent = "Please use manual activation below.";
+        qrErrorText.textContent = "Make sure you're on the Duo activation page and try manual activation below.";
       }
     }
   }, 2000); // Check every 2 seconds
