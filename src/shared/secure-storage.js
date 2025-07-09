@@ -309,6 +309,30 @@ class SecureStorage {
       throw error;
     }
   }
+
+  // Clear all data
+  async clearAll() {
+    try {
+      // Clear all local storage
+      await new Promise((resolve) => {
+        this.browserAPI.storage.local.clear(() => {
+          resolve();
+        });
+      });
+
+      // Also clear sync storage for good measure
+      await new Promise((resolve) => {
+        this.browserAPI.storage.sync.clear(() => {
+          resolve();
+        });
+      });
+
+      return true;
+    } catch (error) {
+      console.error("Failed to clear all data:", error);
+      throw error;
+    }
+  }
 }
 
 // Export for use in other modules

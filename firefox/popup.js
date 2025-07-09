@@ -81,11 +81,6 @@ document.getElementById("helpButton").addEventListener("click", function () {
   browser.tabs.create({ url: browser.runtime.getURL("welcome/index.html") });
 });
 
-// Open settings page
-document.getElementById("gear").addEventListener("click", function () {
-  browser.tabs.create({ url: browser.runtime.getURL("options.html") });
-});
-
 // Remove devices
 document.getElementById("removeDevice").addEventListener("click", function () {
   removeDevice();
@@ -168,9 +163,11 @@ document.addEventListener("DOMContentLoaded", async function () {
 async function updateTOTP() {
   let deviceSelect = document.getElementById("deviceSelect");
   let selectedDeviceId = deviceSelect.value;
+  let totpElement = document.getElementById("totp");
   
   if (selectedDeviceId === "-1" || !selectedDeviceId) {
     document.getElementById("totpCode").textContent = "------";
+    totpElement.style.display = "none";
     return;
   }
 
@@ -178,8 +175,12 @@ async function updateTOTP() {
     const device = await secureStorage.getDevice(selectedDeviceId);
     if (!device || !device.secret) {
       document.getElementById("totpCode").textContent = "------";
+      totpElement.style.display = "none";
       return;
     }
+
+    // Show the TOTP element
+    totpElement.style.display = "flex";
 
     // Generate TOTP
     const token = totp.generate(device.secret);
@@ -192,6 +193,7 @@ async function updateTOTP() {
   } catch (error) {
     console.error("Error generating TOTP:", error);
     document.getElementById("totpCode").textContent = "Error";
+    totpElement.style.display = "none";
   }
 }
 
