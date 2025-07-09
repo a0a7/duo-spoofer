@@ -241,10 +241,21 @@ async function updateTOTP() {
     const token = totp.generate(secret);
     document.getElementById("totpCode").textContent = token;
 
-    // Update circle animation
+    // Update circle animation to sync with TOTP cycle
     const circle = document.getElementById("totpCircle");
-    const timeLeft = 30 - (Math.floor(Date.now() / 1000) % 30);
-    circle.style.animationDelay = `-${30 - timeLeft}s`;
+    if (circle) {
+      // Calculate how many seconds have elapsed in the current 30-second cycle
+      const secondsElapsed = Math.floor(Date.now() / 1000) % 30;
+      
+      // Only restart animation at the beginning of a new cycle or if animation isn't running
+      if (secondsElapsed === 0 || !circle.style.animation || circle.style.animation === 'none') {
+        // Set animation delay to sync with the current position in the cycle
+        circle.style.animation = 'none';
+        circle.offsetHeight; // Trigger reflow
+        circle.style.animation = 'timer 30s linear infinite';
+        circle.style.animationDelay = `-${secondsElapsed}s`;
+      }
+    }
   } catch (error) {
     console.error("Error generating TOTP:", error);
     document.getElementById("totpCode").textContent = "Error";

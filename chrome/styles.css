@@ -654,25 +654,21 @@ dialog {
     width: 100%;
 }
 
-#totp-inside:hover {
-}
-
 #totp svg {
     width: 24px;
     height: 24px;
     flex-shrink: 0;
 }
 
-#totp circle {
+#totp circle,
+#totpCircle {
     fill: none;
     stroke: #28a745;
     transform: rotate(-90deg);
     transform-origin: 50% 50%;
     stroke-width: 2;
     stroke-dasharray: 25.12;
-    animation-name: timer;
-    animation-iteration-count: infinite;
-    animation-timing-function: linear;
+    animation: timer 30s linear infinite;
 }
 
 @keyframes timer {

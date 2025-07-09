@@ -315,6 +315,12 @@ dialog {
     letter-spacing: 2px;
     text-align: center;
     color: #2c3e50 !important;
+    transition: all 0.2s ease;
+}
+
+#totpCode:hover {
+    background-color: #e9ecef;
+    border-color: #dee2e6;
 }
 
 #gear {
@@ -629,21 +635,23 @@ dialog {
 
 /* Enhanced TOTP display */
 #totp {
-    user-select: none;
-    cursor: pointer;
-    display: flex;
     align-items: center;
     gap: 12px;
     background-color: #f8f9fa;
     padding: 12px;
     border: 1px solid #e9ecef;
     border-radius: 8px;
-    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
 }
 
-#totp:hover {
-    background-color: #e9ecef;
-    border-color: #dee2e6;
+#totp-inside {
+    user-select: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
 }
 
 #totp svg {
@@ -652,16 +660,15 @@ dialog {
     flex-shrink: 0;
 }
 
-#totp circle {
+#totp circle,
+#totpCircle {
     fill: none;
     stroke: #28a745;
     transform: rotate(-90deg);
     transform-origin: 50% 50%;
     stroke-width: 2;
     stroke-dasharray: 25.12;
-    animation-name: timer;
-    animation-iteration-count: infinite;
-    animation-timing-function: linear;
+    animation: timer 30s linear infinite;
 }
 
 @keyframes timer {
