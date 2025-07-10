@@ -108,6 +108,12 @@ document.getElementById("helpButton").addEventListener("click", function () {
   browser.tabs.create({ url: browser.runtime.getURL("welcome/index.html") });
 });
 
+// Footer welcome link
+document.getElementById("welcomeLink").addEventListener("click", function (e) {
+  e.preventDefault();
+  browser.tabs.create({ url: browser.runtime.getURL("welcome/index.html") });
+});
+
 // Remove devices
 document.getElementById("removeDevice").addEventListener("click", function () {
   removeDevice();

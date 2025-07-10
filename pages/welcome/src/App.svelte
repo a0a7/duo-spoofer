@@ -2,25 +2,34 @@
 <img src="logo.png" class="h-12 mx-auto">
 </div>
 
+
 <div class="text-center mt-4 w-[85%] md:w-1/2 mx-auto pb-20">
     <h1 class="text-2xl font-bold mb-2">welcome to autoauth</h1>
     <p class="text-gray-700">
-        The purpose of this extension is to stop you having to deal with Duo mobile. It handles authentication automatically in the background whenever you are presented with a Duo prompt in this browser.
+        This extension works by handling authentication automatically in the background whenever you are presented with a Duo prompt in this browser. Duo authentication on other devices still works as normal.
     </p>
     <p class="text-xs text-gray-500 mt-4">
         <b>Disclaimer</b><br>
         This is an independent project and is not recognized, endorsed, or affiliated with Duo Mobile or Cisco Technology. All product names, logos, and brands are property of their respective owners.
+        This extension is intended for educational purposes only and should not be used to bypass security measures without proper authorization. 
+        Use at your own risk. The developers are not responsible for any misuse or consequences arising from the use of this extension.
+        <br><b>Security</b><br>
+        All of your information stays between Duo, your organization, and your browser. We (autoauth) don't collect or share any of your data. All credentials and information related to your duo account are stored locally in encrypted browser storage. 
+        The authenticity of the above claims can be verified at any time by looking at the source code of this extension, which is <b>open-source and available on GitHub at <a href="https://github.com/a0a7/autoauth" target="_blank">https://github.com/a0a7/autoauth</a></b>.
+        Still, there is an inherent security risk in using this extension, as it automates the authentication process.
+        Please ensure you understand the implications of using this extension, especially in environments where security is important.
     </p>
-    <h2 class="text-3xl font-bold mt-4 my-2">Setup Instructions</h2>
+    <h2 class="text-2xl font-bold mt-4 my-2">setup instructions</h2>
     <ol class="list-decimal list-inside text-left mx-auto max-w-xl space-y-2">
         <li>
-            Visit a login page for your organization that requires Duo Mobile for authentication and sign in.
+            Visit a login page for your organization that requires Duo Mobile for authentication and trigger a sign in prompt.
             <br>
             <span class="text-slate-500 font-semibold text-s">
-                If you are not presented with a Duo prompt, try again in an incognito window.
+                If you are not presented with a Duo prompt, clear your cookies/site data for duo and try again.
             </span> 
         </li>
         <li>Click the <span class="font-semibold text-blue-600">Other Options</span> link.</li>
+        <img src="steps/step0.png" class="w-[50%]">
         <li>Select <span class="font-semibold">Manage Devices</span> at the bottom of the list of options.</li>
         <img src="steps/step1.png" class="w-[50%]">
         <li>Authenticate with Duo (for the last time)</li>
@@ -51,4 +60,16 @@
         <li>Copy the activation code from the bottom of the page and paste it into the extension popup.</li>
         <img src="steps/step8.png" class="w-[50%] inline">
     </ol>
+    <h2 class="text-xl font-bold mt-6 mb-2">Usage</h2>
+    <div class="text-left mx-auto max-w-xl space-y-2">
+        The next time you go to sign in with Duo, click the blue Other options text.
+        <img src="steps/step0.png" class="w-[50%]">
+        Then, select the bottommost <span class="font-semibold">Duo Push</span> option. It will be subtitled either "Send to iOS" or "Send to Android" depending on what device the extension was registered as.
+        <img src="steps/step9.png" class="w-[85%]">
+        After this, you should be completely set up and all future duo prompts should be handled automatically in the background!
+        <br><br>
+        <b class="text  -center">
+            If you experience any problems, you can leave an issue on Github at <a style="color: #38f" href="https://github.com/a0a7/autoauth" target="_blank">https://github.com/a0a7/autoauth</a>.
+        </b>
+    </div>
 </div>
