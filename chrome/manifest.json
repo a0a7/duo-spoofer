@@ -1,7 +1,7 @@
 {
-  "name": "autoauth",
-  "description": "Streamlined authentication through Duo Mobile in your browser.",
-  "version": "1.7.0",
+  "name": "autoauth - Never use Duo Mobile Again",
+  "description": "Handles Duo authentication automatically and in the background - safely and securely.",
+  "version": "2.0.0",
   "manifest_version": 3,
   "permissions": [
     "storage"
