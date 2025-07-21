@@ -2,7 +2,6 @@
 <img src="logo.png" class="h-12 mx-auto">
 </div>
 
-
 <div class="text-center mt-4 w-[85%] md:w-1/2 mx-auto pb-20">
     <h1 class="text-2xl font-bold mb-2">welcome to autoauth</h1>
     <p class="text-gray-700">
@@ -20,6 +19,21 @@
         Please ensure you understand the implications of using this extension, especially in environments where security is important.
     </p>
     <h2 class="text-2xl font-bold mt-4 my-2">setup instructions</h2>
+    <!-- YouTube Video Embed 
+    <div class="text-center mt-6 mb-8 w-[85%] md:w-[40%] mx-auto">
+        <div class="relative w-full" style="padding-bottom: 56.25%; height: 0;">
+            <iframe 
+                class="absolute top-0 left-0 w-full h-full rounded-lg shadow-lg"
+                src="https://www.youtube.com/embed/uqwBoGEs4gw"
+                title="AutoAuth Setup Tutorial"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen>
+            </iframe>
+        </div>
+        <p class="text-sm text-gray-600 mt-2">Watch the video tutorial above or follow the written instructions below</p>
+    </div>
+    -->
     <ol class="list-decimal list-inside text-left mx-auto max-w-xl space-y-2">
         <li>
             Visit a login page for your organization that requires Duo Mobile for authentication and trigger a sign in prompt.
